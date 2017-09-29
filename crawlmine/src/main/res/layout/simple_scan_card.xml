@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/CardView"
+    android:layout_width="match_parent"
+    android:layout_height="75dp">
+
+    <RelativeLayout
+        android:id="@+id/rvList"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/scantext"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This is testing part" />
+    </RelativeLayout>
+
+</android.support.v7.widget.CardView>
