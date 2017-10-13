@@ -2,6 +2,7 @@ package trainedge.crawlmine.activity;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -18,10 +19,9 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,7 +43,6 @@ import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
-import com.google.api.services.vision.v1.model.TextAnnotation;
 import com.google.api.services.vision.v1.model.Vertex;
 
 import java.io.ByteArrayOutputStream;
@@ -51,21 +50,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import trainedge.crawlmine.R;
 import trainedge.crawlmine.adapter.ScanAdapter;
-import trainedge.crawlmine.model.ScanModel;
-import trainedge.crawlmine.holder.ScanHolder;
 import trainedge.crawlmine.utils.AnalysisView;
 import trainedge.crawlmine.utils.CrawlImageView;
 import trainedge.crawlmine.utils.GetTokenTask;
 import trainedge.crawlmine.utils.PackageManagerUtils;
 
+import static android.R.attr.path;
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+
 
 public class ScanActivity extends BaseActivity {
 
     FrameLayout overlay;
+    public static final String PACKAGE = "trainedge.crawlmine.activity";
 
     static final int REQUEST_CODE_PICK_ACCOUNT = 11;
     static final int REQUEST_ACCOUNT_AUTHORIZATION = 12;
@@ -75,41 +75,56 @@ public class ScanActivity extends BaseActivity {
     private static final String ANDROID_CERT_HEADER = "X-Android-Cert";
     private static final String ANDROID_PACKAGE_HEADER = "X-Android-Package";
 
-
     private static String accessToken;
     private final String LOG_TAG = "Scanned";
     Account mAccount;
-    private CrawlImageView selectedImage;
-    private TextView resultTextView;
-    private FloatingActionButton fab;
     private Uri imageUri;
+    private ProgressDialog dialog;
     private String path;
-    private Button scanRecycler;
-    private RecyclerView scanRecyclerView;
-    private ScanAdapter adapter;
+    //private String path;
+    //private ScanAdapter adapter;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
+        dialog = new ProgressDialog(this);
+        /*
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        */
+        if (getIntent() != null) {
+            Bundle extras = getIntent().getExtras();
+            if (extras != null) {
+
+                path = extras.getString(CameraActivity.PACKAGE + ".path");
+
+                File f = new File(path);
+                Uri imageUri = Uri.fromFile(f);
+
+
+                //Glide.with(this).load(imageUri).into(selectedImage);
+                uploadImage(imageUri);
+
+            } else {
+                Toast.makeText(context, "Else", Toast.LENGTH_SHORT).show();
+            }
+        }
         //  getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        imageUri = getIntent().getData();
         initPermission();
+        uploadImage(imageUri);
 
-
-        // imageUri = getIntent().getData();
-
+        dialog.show();
+/*
         overlay = (FrameLayout) findViewById(R.id.overlay);
         fab = (FloatingActionButton) findViewById(R.id.fab);
         selectedImage = (CrawlImageView) findViewById(R.id.ivSelected);
         resultTextView = (TextView) findViewById(R.id.tvResult);
-
         scanRecyclerView = (RecyclerView) findViewById(R.id.scanRecyclerView);
         scanRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-
         selectedImage.setImageURI(imageUri);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,10 +132,10 @@ public class ScanActivity extends BaseActivity {
                 Toast.makeText(ScanActivity.this, "Scanning", Toast.LENGTH_SHORT).show();
                 uploadImage(imageUri);
             }
-        });
+        });*/
 
 
-        if (getIntent() != null) {
+        /*if (getIntent() != null) {
             Bundle extras = getIntent().getExtras();
             if (extras != null) {
                 path = extras.getString(CameraActivity.PACKAGE + ".path");
@@ -135,7 +150,7 @@ public class ScanActivity extends BaseActivity {
             } else {
                 Toast.makeText(context, "Else", Toast.LENGTH_SHORT).show();
             }
-        }
+        }*/
 
 
     }
@@ -216,7 +231,10 @@ public class ScanActivity extends BaseActivity {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
                 bitmap = resizeBitmap(bitmap);
                 callCloudVision(bitmap);
-                selectedImage.setImageBitmap(bitmap);
+
+                //dialog.dismiss();
+
+                //selectedImage.setImageBitmap(bitmap);
             } catch (IOException e) {
                 Log.e(LOG_TAG, e.getMessage());
             }
@@ -247,8 +265,7 @@ public class ScanActivity extends BaseActivity {
     }
 
     private void callCloudVision(final Bitmap bitmap) throws IOException {
-        resultTextView.setText("Retrieving results from cloud");
-
+        // TODO: 10-10-2017 Add a progress dialog
         new AsyncTask<Object, Void, String>() {
             @Override
             protected String doInBackground(Object... params) {
@@ -311,7 +328,7 @@ public class ScanActivity extends BaseActivity {
             }
 
             protected void onPostExecute(String result) {
-                resultTextView.setText(result);
+                Log.d("haha", "process finished");
             }
         }.execute();
     }
@@ -325,7 +342,7 @@ public class ScanActivity extends BaseActivity {
             List<EntityAnnotation> labels = imageResponse.getLabelAnnotations();
 
             if (labels != null) {
-                 for (EntityAnnotation label : labels) {
+                for (EntityAnnotation label : labels) {
                     message.append(label.getDescription());
                     message.append("\n");
                 }
@@ -348,7 +365,7 @@ public class ScanActivity extends BaseActivity {
             } else {
                 message.append("nothing\n");
             }
-            List<EntityAnnotation> dataList = new ArrayList<>();
+            final List<EntityAnnotation> dataList = new ArrayList<>();
 
         /*generate arraylist*/
             if (imageResponse.getTextAnnotations().size() > 0) {
@@ -357,34 +374,49 @@ public class ScanActivity extends BaseActivity {
         /*pass it to recycler view adapter*/
             final List<Vertex> vertices = dataList.get(0).getBoundingPoly().getVertices();
             //
-            int size = vertices.size();
+        /*if (getIntent() != null) {
+            Bundle extras = getIntent().getExtras();
+            if (extras != null) {
+                path = extras.getString(CameraActivity.PACKAGE + ".path");
 
-            //selectedimage.refresh
+                File f = new File(path);
+                Uri imageUri = Uri.fromFile(f);
+
+
+                Glide.with(this).load(imageUri).into(selectedImage);
+                uploadImage(imageUri);
+
+            } else {
+                Toast.makeText(context, "Else", Toast.LENGTH_SHORT).show();
+            }
+        }*/
+            int size = vertices.size();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    AnalysisView analysisView = new AnalysisView(context, ((BitmapDrawable) selectedImage.getDrawable()).getBitmap(), vertices);
-                    overlay.addView(analysisView);
+
+                    if(dialog.isShowing()){
+                        dialog.dismiss();
+                    }
+                    databaseList();
+
+                    Intent resultIntent = new Intent(ScanActivity.this, ScanResultActivity.class);
+                    resultIntent.putExtra(PACKAGE + ".result", dataList.toString());
+                    startActivity(resultIntent);
+
                 }
             });
-            adapter = new ScanAdapter(this, dataList);
-        /*set adapter to recyler */
-        } catch (final Exception e) {
 
+
+        } catch (final Exception e) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    Log.d("padhiye", e.getMessage());
+                    Log.d("haha", e.getMessage());
                     Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                scanRecyclerView.setAdapter(adapter);
-            }
-        });
         return message.toString();
     }
 

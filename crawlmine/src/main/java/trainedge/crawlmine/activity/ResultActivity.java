@@ -13,3 +13,4 @@ public class ResultActivity extends AppCompatActivity {
         setContentView(R.layout.activity_result);
     }
 }
+

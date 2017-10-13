@@ -240,15 +240,6 @@ public class CameraActivity extends BaseActivity implements View.OnClickListener
 
     }
 
-    public void selectImage() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(intent, REQUEST_IMAGE_GET);
-        }
-    }
-
-
     private void handleBigCameraPhoto() {
 
         if (mCurrentPhotoPath != null) {
@@ -257,6 +248,7 @@ public class CameraActivity extends BaseActivity implements View.OnClickListener
         }
 
     }
+
 
     // Some lifecycle callbacks so that the image can survive orientation change
     @Override
@@ -288,5 +280,13 @@ public class CameraActivity extends BaseActivity implements View.OnClickListener
 //GalleryCode
 
 
+    }
+
+    public void selectImage() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, REQUEST_IMAGE_GET);
+        }
     }
 }

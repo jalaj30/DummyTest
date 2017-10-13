@@ -1,5 +1,6 @@
 package trainedge.crawlmine.utils;
 
+
 /**
  * Created by Jalaj on 9/29/2017.
  */
@@ -8,104 +9,85 @@ import android.content.*;
 import android.view.*;
 import android.graphics.*;
 
-import com.google.api.services.vision.v1.model.Vertex;
+import android.widget.Toast;
 
-import java.util.List;
+import org.json.JSONArray;
+import org.json.JSONException;
 
-import trainedge.crawlmine.R;
+public class AnalysisView extends SurfaceView implements SurfaceHolder.Callback {
 
-public class AnalysisView extends SurfaceView {
 
-    private SurfaceHolder holder;
-    private Bitmap bmp;
-    private Bitmap image;
-    List<Vertex> vertices;
+    private final Context context;
+    private final Paint paint_bg;
+    private JSONArray vertices = null;
     private Paint paint;
 
-    public AnalysisView(Context c, Bitmap image, List<Vertex> vertices) {
-        super(c);
 
-        this.image = image;
-        this.vertices = vertices;
-
-        this.bmp = image;
-        holder = getHolder();
-        holder.addCallback(new SurfaceHolder.Callback() {
-
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-            }
-
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                Canvas canvas = holder.lockCanvas();
-                if (canvas != null) {
-                    draw(canvas);
-                    canvas = drawOverSurface();
-                    holder.unlockCanvasAndPost(canvas);
-                }
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            }
-
-        });
-    }
-
-    private Canvas drawOverSurface() {
+    private Canvas drawOverSurface(Canvas canvas) {
         paint = new Paint();
-        paint.setARGB(255, 153, 29, 29);
+        paint.setARGB(255, 153, 255, 255);
         paint.setStyle(Paint.Style.FILL_AND_STROKE);
-        paint.setAntiAlias(true);
 
         Path path = new Path();
-        path.moveTo(vertices.get(0).getX(), vertices.get(0).getY());
-        path.lineTo(vertices.get(1).getX(), vertices.get(1).getY());
-        path.moveTo(vertices.get(1).getX(), vertices.get(1).getY());
-        path.lineTo(vertices.get(2).getX(), vertices.get(2).getY());
-        path.moveTo(vertices.get(2).getX(), vertices.get(2).getY());
-        path.lineTo(vertices.get(3).getX(), vertices.get(3).getY());
-        path.moveTo(vertices.get(3).getX(), vertices.get(3).getY());
-        path.lineTo(vertices.get(0).getX(), vertices.get(0).getY());
+
+        try {
+            path.moveTo(vertices.getJSONObject(0).getInt("x"), vertices.getJSONObject(0).getInt("y"));
+            path.lineTo(vertices.getJSONObject(0).getInt("x"), vertices.getJSONObject(0).getInt("y"));
+            path.moveTo(vertices.getJSONObject(1).getInt("x"), vertices.getJSONObject(1).getInt("y"));
+            path.lineTo(vertices.getJSONObject(1).getInt("x"), vertices.getJSONObject(1).getInt("y"));
+            path.moveTo(vertices.getJSONObject(2).getInt("x"), vertices.getJSONObject(2).getInt("y"));
+            path.lineTo(vertices.getJSONObject(2).getInt("x"), vertices.getJSONObject(2).getInt("y"));
+            path.moveTo(vertices.getJSONObject(3).getInt("x"), vertices.getJSONObject(3).getInt("y"));
+            path.lineTo(vertices.getJSONObject(3).getInt("x"), vertices.getJSONObject(3).getInt("y"));
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         path.close();
-        Canvas canvas = new Canvas();
+        canvas = new Canvas();
         canvas.drawPath(path, paint);
         return canvas;
     }
 
 
-    public AnalysisView(Context context) {
+    public AnalysisView(Context context, JSONArray vertices) {
         super(context);
-        this.bmp = BitmapFactory.decodeResource(getResources(), R.drawable.download);
-        holder = getHolder();
-        holder.addCallback(new SurfaceHolder.Callback() {
-
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-            }
-
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                Canvas canvas = holder.lockCanvas();
-                if (canvas != null) {
-                    draw(canvas);
-                    holder.unlockCanvasAndPost(canvas);
-                }
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            }
-
-        });
+        this.vertices = vertices;
+        getHolder().addCallback(this);
+        this.context = context;
+        paint_bg = new Paint();
+        paint_bg.setColor(Color.RED);
     }
 
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
-        canvas.drawColor(Color.BLACK);
-        canvas.drawBitmap(this.bmp, 25, 25, null);
+
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        Toast.makeText(context, "Surface created", Toast.LENGTH_SHORT).show();
+        Canvas canvas = holder.lockCanvas();
+        drawOverSurface(canvas);
+        holder.unlockCanvasAndPost(canvas);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        Toast.makeText(context, "Surface Changed", Toast.LENGTH_SHORT).show();
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        Toast.makeText(context, "Surface Drestroyed hahaha", Toast.LENGTH_SHORT).show();
+
     }
 }
 

@@ -70,8 +70,12 @@
             android:name=".activity.ScanActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".activity.RecyclerScan" />
-        <activity android:name=".activity.StartDraw" />
-        <activity android:name=".activity.CanvasActivity"></activity>
+        <activity android:name=".activity.CanvasActivity" />
+        <activity android:name=".activity.QRActivity" />
+        <activity android:name=".activity.InstructionsActivity" />
+        <activity android:name=".activity.QRCodeGenerator" />
+        <activity android:name=".activity.QRCodeScanner" />
+        <activity android:name=".activity.ScanResultActivity"></activity>
     </application>
 
 </manifest>

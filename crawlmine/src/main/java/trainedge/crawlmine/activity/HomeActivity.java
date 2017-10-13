@@ -2,8 +2,13 @@ package trainedge.crawlmine.activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -15,18 +20,28 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.appinvite.AppInviteInvitation;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.zip.Inflater;
 
 import trainedge.crawlmine.R;
 
-public class HomeActivity extends AppCompatActivity
+public class HomeActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private EditText etFeedEmail1;
     private String m;
+    private ImageView userImage;
+    private TextView userEmail;
+    private TextView userName;
+    private LinearLayout headBackground;
+    private static final int REQUEST_INVITE = 55;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +70,32 @@ public class HomeActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        View headerView = navigationView.getHeaderView(0);
+
+        userImage = headerView.findViewById(R.id.userImage);
+
+        userEmail = headerView.findViewById(R.id.userEmail);
+        userName = headerView.findViewById(R.id.userName);
+
+        headBackground = headerView.findViewById(R.id.headBackground);
+
+       String  displayEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+        Uri displayImage = FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl();
+       String  displayName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+
+        Glide.with(context).load(displayImage.toString()).into(userImage);
+        userImage.setVisibility(View.VISIBLE);
+
+        userName.setText(displayName);
+        userEmail.setText(displayEmail);
+
+        //round imageview of user image
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.id.userImage);
+        RoundedBitmapDrawable roundedBitmapDrawable = RoundedBitmapDrawableFactory.create(getResources(), bitmap);
+        roundedBitmapDrawable.setCircular(true);
+        userImage.setImageDrawable(roundedBitmapDrawable);
+
     }
 
     @Override
@@ -144,12 +185,30 @@ public class HomeActivity extends AppCompatActivity
 
             // Handle the camera action
         } else if (id == R.id.nav_gallery) {
+            Intent i=new Intent(HomeActivity.this,QRActivity.class);
+            startActivity(i);
 
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {
+
+
+            AppInviteInvitation.IntentBuilder intent = new AppInviteInvitation
+                    .IntentBuilder("Send Invitations for Smart Scanner app")
+                    // Ensure valid length for any message used before calling otherwise this will throw
+                    // an IllegalArgumentException if greater than MAX_MESSAGE_LENGTH.
+                    .setMessage("Try out Smart Scanner app now")
+                    .setDeepLink(Uri.parse("//https://play.google.com/store/apps/details?id=com.trainedge.crawlmine&hl=en"))
+                    .setCallToActionText("Find data");
+            Intent i = intent.build();
+            startActivityForResult(i, REQUEST_INVITE);
+
+            //https://play.google.com/store/apps/details?id=com.trainedge.crawlmine&hl=en
+            ////xyz.com/offer/free_trial_campaign
+
+
 
         } else if (id == R.id.nav_complaint) {
 
